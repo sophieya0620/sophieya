@@ -29,30 +29,35 @@ const Store = (() => {
     }));
   }
 
-  const lsRead = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch (_) { return []; } };
-  const lsWrite = list => localStorage.setItem(LS_KEY, JSON.stringify(list));
+  let memory = [];   // 저장소를 쓸 수 없는 환경에서의 마지막 대비
+  const lsRead = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null') || memory; } catch (_) { return memory; } };
+  const lsWrite = list => { memory = list; try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (_) {} };
 
   const sortEntries = list => list.sort((a, b) =>
     (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
 
+  // IndexedDB가 실패하면 localStorage(또는 메모리)로 넘어갑니다
+  async function withFallback(idbFn, lsFn) {
+    await open();
+    if (!useLS) {
+      try { return await idbFn(); } catch (_) { useLS = true; }
+    }
+    return lsFn();
+  }
+
   return {
     async all() {
-      await open();
-      const list = useLS ? lsRead() : (await run('readonly', s => s.getAll())) || [];
-      return sortEntries(list);
+      const list = await withFallback(() => run('readonly', s => s.getAll()), lsRead);
+      return sortEntries([...(list || [])]);
     },
-    async put(entry) {
-      await open();
-      if (useLS) {
+    put(entry) {
+      return withFallback(() => run('readwrite', s => s.put(entry)), () => {
         const list = lsRead().filter(e => e.id !== entry.id);
-        list.push(entry); lsWrite(list); return;
-      }
-      await run('readwrite', s => s.put(entry));
+        list.push(entry); lsWrite(list);
+      });
     },
-    async remove(id) {
-      await open();
-      if (useLS) { lsWrite(lsRead().filter(e => e.id !== id)); return; }
-      await run('readwrite', s => s.delete(id));
+    remove(id) {
+      return withFallback(() => run('readwrite', s => s.delete(id)), () => lsWrite(lsRead().filter(e => e.id !== id)));
     },
   };
 })();

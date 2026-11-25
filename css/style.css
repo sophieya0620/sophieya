@@ -504,6 +504,12 @@ svg { display: block; }
 .spark.s3 { top: 40%; right: -12px; width: 6px; height: 6px; animation-delay: 1.2s; }
 @keyframes twinkle { 50% { transform: scale(.3); opacity: .3; } }
 
+/* 확인 대화상자 */
+.ask-card { padding: 26px 20px 20px; }
+.ask-card p { margin: 0 0 20px; font-family: var(--serif); font-size: 16px; color: var(--ink); white-space: pre-line; }
+.ask-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-card .ask-actions .btn { width: auto; }
+
 /* ---------- 토스트 ---------- */
 .toast {
   position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 40;

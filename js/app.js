@@ -45,6 +45,22 @@
     toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
   }
 
+  function ask(message, yes = '네') {
+    return new Promise(resolve => {
+      const m = $('#askModal');
+      $('#askText').textContent = message;
+      $('#askYes').textContent = yes;
+      const done = v => {
+        closeLayer(m);
+        $('#askYes').onclick = $('#askNo').onclick = null;
+        resolve(v);
+      };
+      $('#askYes').onclick = () => done(true);
+      $('#askNo').onclick = () => done(false);
+      openLayer(m);
+    });
+  }
+
   function vibrate(ms = 8) { try { navigator.vibrate?.(ms); } catch (_) {} }
 
   function saveDraft() {
@@ -61,7 +77,7 @@
     } catch (_) {}
     return null;
   }
-  const clearDraft = () => localStorage.removeItem(DRAFT_KEY);
+  const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY); } catch (_) {} };
 
   /* ---------------- 페이지 이동 ---------------- */
   function goPage(n, { scroll = true } = {}) {
@@ -443,9 +459,9 @@
     $('#toolPen').addEventListener('click', () => setTool('pen'));
     $('#toolEraser').addEventListener('click', () => setTool('eraser'));
     $('#undoBtn').addEventListener('click', () => { if (!pad.undo()) toast('더 되돌릴 수 없어요'); });
-    $('#clearBtn').addEventListener('click', () => {
+    $('#clearBtn').addEventListener('click', async () => {
       if (!pad.hasInk) return;
-      if (confirm('그림을 모두 지울까요?')) pad.clear();
+      if (await ask('그림을 모두 지울까요?', '지우기')) pad.clear();
     });
 
     // 기록
@@ -467,7 +483,7 @@
       toast('기록을 고쳐 쓸 수 있어요');
     });
     $('#deleteBtn').addEventListener('click', async () => {
-      if (!confirm('이 기억 구슬을 지울까요?\n지운 기록은 되돌릴 수 없어요.')) return;
+      if (!(await ask('이 기억 구슬을 지울까요?\n지운 기록은 되돌릴 수 없어요.', '지우기'))) return;
       const id = state.detailId;
       await Store.remove(id);
       closeLayer($('#detailSheet'));
