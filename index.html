@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="오늘의 마음을 기억 구슬로 남기는 나만의 감정 일기장">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="마음 구슬">
+  <title>마음 구슬 · 감정 일기</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true"><span class="o1"></span><span class="o2"></span><span class="o3"></span></div>
+
+  <div class="app" id="app">
+    <!-- ===== 헤더 ===== -->
+    <header class="top">
+      <div class="brand">
+        <div class="brand-orb" aria-hidden="true"></div>
+        <div>
+          <h1>마음 구슬</h1>
+          <p>오늘의 나에게, 솔직하게</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="openRecords" aria-label="지난 기록 보기">
+        <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 11.5h5"/></svg>
+        <span class="badge" id="recordCount" hidden>0</span>
+      </button>
+    </header>
+
+    <div class="edit-banner" id="editBanner" hidden>
+      <span>지난 기록을 고치고 있어요</span>
+      <button id="cancelEdit">새로 쓰기</button>
+    </div>
+
+    <!-- ===== 단계 표시 ===== -->
+    <nav class="steps" id="steps" aria-label="일기 단계">
+      <button class="step" data-step="0"><b>1</b><span>오늘의 마음</span></button>
+      <button class="step" data-step="1"><b>2</b><span>그날의 이야기</span></button>
+      <button class="step" data-step="2"><b>3</b><span>마음 그림</span></button>
+      <i class="step-bar"><i id="stepFill"></i></i>
+    </nav>
+
+    <main class="stage" id="stage">
+      <!-- ===== 1장: 날짜 · 감정 · 인물 · 별점 ===== -->
+      <section class="page" data-page="0" aria-label="1장 오늘의 마음">
+        <div class="card date-card">
+          <label class="date-pick" id="datePick">
+            <span class="date-day" id="dateDay">1</span>
+            <span class="date-meta">
+              <em id="dateMonth">2026년 1월</em>
+              <strong id="dateWeek">월요일</strong>
+            </span>
+            <span class="date-cal" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+            </span>
+            <input type="date" id="dateInput" aria-label="날짜 선택">
+          </label>
+          <p class="date-quote" id="dateQuote">오늘 하루, 어떤 마음이었나요?</p>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>지금 내 마음은</h2>
+            <span class="hint">최대 3개까지 골라요</span>
+          </div>
+          <div class="hero" id="hero"></div>
+          <div class="tabs" id="tabs" role="tablist"></div>
+          <div class="emo-grid" id="emoGrid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>함께한 사람</h2>
+            <span class="hint">이 마음과 연결된 사람</span>
+          </div>
+          <div class="chips" id="peopleChips"></div>
+          <form class="people-add" id="peopleForm" autocomplete="off">
+            <input id="peopleInput" maxlength="14" placeholder="이름이나 관계를 적어주세요" enterkeyhint="done">
+            <button type="submit" aria-label="추가">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </form>
+          <div class="suggest" id="peopleSuggest"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>그 일은 몇 점이었나요?</h2>
+            <span class="hint" id="ratingText">5점 만점</span>
+          </div>
+          <div class="stars" id="stars" role="radiogroup" aria-label="별점"></div>
+        </div>
+      </section>
+
+      <!-- ===== 2장: 사건 ===== -->
+      <section class="page" data-page="1" aria-label="2장 그날의 이야기">
+        <div class="card">
+          <div class="mini-emos" id="miniEmos"></div>
+          <h2 class="story-title">어떤 일이 있었나요?</h2>
+          <p class="sub">언제, 어디서, 누구와, 어떤 일이 있었는지 천천히 떠올려 보세요.</p>
+          <div class="paper-wrap">
+            <textarea id="eventText" class="paper" rows="9" maxlength="1500"
+              placeholder="오늘 마음을 움직인 일을 적어보세요."></textarea>
+          </div>
+          <div class="count"><span id="eventCount">0</span> / 1500</div>
+        </div>
+
+        <div class="card">
+          <h2 class="story-title">왜 이 감정을 골랐나요?</h2>
+          <p class="sub">그 마음이 든 이유를, 판단하지 말고 있는 그대로 적어보세요.</p>
+          <div class="paper-wrap">
+            <textarea id="reasonText" class="paper" rows="5" maxlength="800"
+              placeholder="예) 내 이야기를 끝까지 들어줘서 마음이 놓였어요."></textarea>
+          </div>
+        </div>
+
+        <p class="gentle-note">어떤 감정도 틀리지 않아요.<br>모든 마음에는 저마다의 이유가 있어요.</p>
+      </section>
+
+      <!-- ===== 3장: 그림 메모장 ===== -->
+      <section class="page" data-page="2" aria-label="3장 마음 그림">
+        <div class="card draw-card">
+          <div class="card-head">
+            <h2>마음을 그려보세요</h2>
+            <span class="hint">말로 다 하지 못한 마음을</span>
+          </div>
+          <div class="canvas-wrap" id="canvasWrap">
+            <canvas id="pad"></canvas>
+            <p class="canvas-empty" id="canvasEmpty">손가락으로 자유롭게 그려보세요</p>
+          </div>
+          <div class="toolbar">
+            <div class="palette" id="palette"></div>
+            <div class="tool-row">
+              <div class="sizes" id="sizes"></div>
+              <div class="tools">
+                <button class="tool active" id="toolPen" aria-label="펜">
+                  <svg viewBox="0 0 24 24"><path d="M4 20l1.2-4.4L16.5 4.3a2 2 0 0 1 2.8 0l.4.4a2 2 0 0 1 0 2.8L8.4 18.8 4 20Z"/><path d="M14.5 6.3l3.2 3.2"/></svg>
+                </button>
+                <button class="tool" id="toolEraser" aria-label="지우개">
+                  <svg viewBox="0 0 24 24"><path d="M8.5 20H20M4.6 14.6l9.2-9.2a2 2 0 0 1 2.8 0l2.9 2.9a2 2 0 0 1 0 2.8L12 18.6a2 2 0 0 1-1.4.6H8.3a2 2 0 0 1-1.4-.6l-2.3-2.3a1.8 1.8 0 0 1 0-1.7Z"/><path d="M9.5 9.7l5.3 5.3"/></svg>
+                </button>
+                <button class="tool" id="undoBtn" aria-label="되돌리기">
+                  <svg viewBox="0 0 24 24"><path d="M9 7H4V2"/><path d="M4.5 7.5A8 8 0 1 1 6 18"/></svg>
+                </button>
+                <button class="tool" id="clearBtn" aria-label="모두 지우기">
+                  <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== 하단 버튼 ===== -->
+    <footer class="bottom">
+      <button class="btn ghost" id="prevBtn">이전</button>
+      <button class="btn primary" id="nextBtn">다음</button>
+    </footer>
+  </div>
+
+  <!-- ===== 기록 목록 시트 ===== -->
+  <div class="sheet" id="recordsSheet" aria-hidden="true">
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-label="나의 기억 구슬">
+      <div class="sheet-grip"></div>
+      <header class="sheet-head">
+        <h2>나의 기억 구슬</h2>
+        <button class="icon-btn small" data-close aria-label="닫기">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </header>
+      <div class="sheet-body">
+        <div class="shelf" id="shelf"></div>
+        <div class="mood-bar" id="moodBar"></div>
+        <div class="record-list" id="recordList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 기록 상세 시트 ===== -->
+  <div class="sheet" id="detailSheet" aria-hidden="true">
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-label="기록 보기">
+      <div class="sheet-grip"></div>
+      <header class="sheet-head">
+        <h2 id="detailTitle">기록</h2>
+        <button class="icon-btn small" data-close aria-label="닫기">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </header>
+      <div class="sheet-body" id="detailBody"></div>
+      <div class="sheet-actions">
+        <button class="btn ghost danger" id="deleteBtn">지우기</button>
+        <button class="btn primary" id="editBtn">고쳐 쓰기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 저장 완료 ===== -->
+  <div class="modal" id="savedModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="memory-orb" id="savedOrb"></div>
+      <h3>기억 구슬이 만들어졌어요</h3>
+      <p id="savedText">오늘의 마음을 소중히 간직할게요.</p>
+      <button class="btn primary" id="savedOk">확인</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/emotions.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/canvas.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
