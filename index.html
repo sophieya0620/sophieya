@@ -45,7 +45,7 @@
     <!-- ===== 단계 표시 ===== -->
     <nav class="steps" id="steps" aria-label="일기 단계">
       <button class="step" data-step="0"><b>1</b><span>오늘의 마음</span></button>
-      <button class="step" data-step="1"><b>2</b><span>마음의 빙산</span></button>
+      <button class="step" data-step="1"><b>2</b><span>마음 계단</span></button>
       <button class="step" data-step="2"><b>3</b><span>마음 그림</span></button>
       <i class="step-bar"><i id="stepFill"></i></i>
     </nav>
@@ -103,27 +103,32 @@
         </div>
       </section>
 
-      <!-- ===== 2장: 마음의 빙산 ===== -->
-      <section class="page berg-page" data-page="1" aria-label="2장 마음의 빙산">
+      <!-- ===== 2장: 마음 계단 ===== -->
+      <section class="page berg-page" data-page="1" aria-label="2장 마음 계단">
         <div class="berg-intro">
-          <h2>마음의 빙산</h2>
-          <p>눈에 보이는 행동 아래에는 감정, 생각, 기대, 열망, 그리고 내가 있어요.
-          수면 위에서부터 천천히 내려가 보세요. 떠오르는 만큼만 적어도 괜찮아요.</p>
+          <div class="intro-mag"><svg class="mag" viewBox="0 0 64 64" aria-hidden="true">
+              <defs>
+                <radialGradient id="lensG" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#E9F4FD"/><stop offset="1" stop-color="#BFDDF5"/></radialGradient>
+                <linearGradient id="rimG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE68A"/><stop offset="1" stop-color="#EBA91C"/></linearGradient>
+                <linearGradient id="handleG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFC2D3"/><stop offset="1" stop-color="#F28CA8"/></linearGradient>
+              </defs>
+              <path d="M38 38 L56 56" stroke="url(#handleG)" stroke-width="9" stroke-linecap="round"/>
+              <path d="M40 40 L54 54" stroke="#fff" stroke-opacity=".45" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="26" cy="26" r="19" fill="url(#lensG)" stroke="url(#rimG)" stroke-width="6"/>
+              <path d="M15 22 Q18 14 26 12" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+            </svg></div>
+          <div>
+            <h2>마음 계단</h2>
+            <p>겉으로 보이는 행동 아래에는 감정, 생각, 기대, 열망, 그리고 내가 있어요.
+            돋보기를 들고 한 계단씩 천천히 내려가며 들여다봐요. 떠오르는 만큼만 적어도 괜찮아요.</p>
+          </div>
         </div>
-        <nav class="berg-map" id="bergMap" aria-label="빙산 층 바로가기"></nav>
+        <nav class="berg-map" id="bergMap" aria-label="계단 바로가기"></nav>
 
         <div class="berg">
-          <div class="berg-peak" aria-hidden="true">
-            <svg viewBox="0 0 300 70" preserveAspectRatio="none">
-              <defs><linearGradient id="peakG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#EEF6FD"/></linearGradient></defs>
-              <path d="M18 70 L78 30 L104 40 L140 6 L160 22 L176 12 L222 44 L244 36 L282 70 Z" fill="url(#peakG)" stroke="#DCEBF8" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M140 6 L134 34 M176 12 L182 30" stroke="#E3EEF8" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-
-          <!-- 수면 위: 행동 -->
+          <!-- 1번째 계단: 행동 -->
           <div class="berg-layer d0" id="layer-behavior">
-            <div class="layer-head"><span class="layer-tag">수면 위</span><h3>행동 <em>behavior</em></h3><small>표현된 행동과 그날의 이야기</small></div>
+            <div class="layer-head"><span class="step-no">1</span><span class="layer-tag">겉으로 보이는 나</span><h3>행동 <em>behavior</em></h3><small>표현된 행동과 그날의 이야기</small></div>
             <label class="q">어떤 일이 있었고, 그때 나는 어떻게 행동했나요?</label>
             <div class="paper-wrap"><textarea class="paper" data-field="event" rows="6" maxlength="1500" placeholder="언제, 어디서, 누구와, 무슨 일이 있었는지 · 그때 내가 한 말과 행동을 적어보세요."></textarea></div>
             <div class="count"><span id="eventCount">0</span> / 1500</div>
@@ -131,14 +136,14 @@
             <div class="coping" id="copingChips"></div>
           </div>
 
-          <div class="sea">
-            <div class="sea-line" aria-hidden="true">
-              <svg viewBox="0 0 300 24" preserveAspectRatio="none"><path d="M0 12 Q18 2 37 12 T75 12 T112 12 T150 12 T187 12 T225 12 T262 12 T300 12 V24 H0 Z" fill="#E4F1FC"/><path d="M0 12 Q18 2 37 12 T75 12 T112 12 T150 12 T187 12 T225 12 T262 12 T300 12" fill="none" stroke="#9FCBEF" stroke-width="2"/></svg>
+          <div class="deep">
+            <div class="deep-door">
+              <i class="deep-mag" aria-hidden="true"></i>
+              <p><b>여기서부터 안쪽 마음</b><br>겉으로 잘 보이지 않는 마음을 돋보기로 들여다봐요</p>
             </div>
-            <p class="sea-note"><b>수면 아래</b> · 여기서부터는 겉으로 잘 보이지 않는 마음이에요</p>
 
             <div class="berg-layer d1" id="layer-feelings">
-              <div class="layer-head"><span class="layer-tag">1층</span><h3>감정 <em>feelings</em></h3><small>느낀 감정과 감정에 대한 감정</small></div>
+              <div class="layer-head"><span class="step-no">2</span><span class="layer-tag">안쪽 1계단</span><h3>감정 <em>feelings</em></h3><small>느낀 감정과 감정에 대한 감정</small></div>
               <div class="mini-emos" id="miniEmos"></div>
               <label class="q">왜 이 감정을 느꼈을까요?</label>
               <div class="paper-wrap"><textarea class="paper" data-field="reason" rows="3" maxlength="800" placeholder="예) 내 이야기를 끝까지 들어줘서 마음이 놓였어요."></textarea></div>
@@ -147,13 +152,13 @@
             </div>
 
             <div class="berg-layer d2" id="layer-perception">
-              <div class="layer-head"><span class="layer-tag">2층</span><h3>지각 <em>perceptions</em></h3><small>생각 · 믿음 · 가정 · 가치</small></div>
+              <div class="layer-head"><span class="step-no">3</span><span class="layer-tag">안쪽 2계단</span><h3>지각 <em>perceptions</em></h3><small>생각 · 믿음 · 가정 · 가치</small></div>
               <label class="q">그 일을 어떻게 받아들이고 해석했나요?</label>
               <div class="paper-wrap"><textarea class="paper" data-field="perception" rows="3" maxlength="800" placeholder="예) '나는 늘 부족해'라는 생각이 들었어요 · 약속은 꼭 지켜야 한다고 믿어요"></textarea></div>
             </div>
 
             <div class="berg-layer d3" id="layer-expectation">
-              <div class="layer-head"><span class="layer-tag">3층</span><h3>기대 <em>expectations</em></h3><small>나와 타인에 대한 기대</small></div>
+              <div class="layer-head"><span class="step-no">4</span><span class="layer-tag">안쪽 3계단</span><h3>기대 <em>expectations</em></h3><small>나와 타인에 대한 기대</small></div>
               <label class="q">나는 나에게 무엇을 기대했나요?</label>
               <div class="paper-wrap"><textarea class="paper" data-field="expectSelf" rows="2" maxlength="800" placeholder="예) 실수 없이 잘 해내길 바랐어요"></textarea></div>
               <label class="q">나는 상대에게 무엇을 기대했나요?</label>
@@ -163,14 +168,14 @@
             </div>
 
             <div class="berg-layer d4" id="layer-yearning">
-              <div class="layer-head"><span class="layer-tag">4층</span><h3>열망 <em>yearnings</em></h3><small>그 아래에서 정말 바랐던 것</small></div>
+              <div class="layer-head"><span class="step-no">5</span><span class="layer-tag">안쪽 4계단</span><h3>열망 <em>yearnings</em></h3><small>그 아래에서 정말 바랐던 것</small></div>
               <label class="q">마음 깊이 바랐던 것을 골라보세요 <small>여러 개 골라도 돼요</small></label>
               <div class="yearn-chips" id="yearnChips"></div>
               <div class="paper-wrap"><textarea class="paper" data-field="yearnText" rows="2" maxlength="800" placeholder="예) 있는 그대로의 나를 받아들여 주길 바랐어요"></textarea></div>
             </div>
 
             <div class="berg-layer d5 core" id="layer-self">
-              <div class="layer-head"><span class="layer-tag">가장 깊은 곳</span><h3>자기 <em>self</em></h3><small>나는 나</small></div>
+              <div class="layer-head"><span class="step-no">6</span><span class="layer-tag">가장 깊은 곳</span><h3>자기 <em>self</em></h3><small>나는 나</small></div>
               <label class="q">이 모든 마음을 지나, 가장 깊은 곳의 나에게 한마디 건네보세요.</label>
               <div class="paper-wrap"><textarea class="paper" data-field="selfText" rows="3" maxlength="800" placeholder="예) 그래도 오늘을 견뎌낸 나, 참 애썼어."></textarea></div>
             </div>
@@ -371,7 +376,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/emotions.js"></script>
-  <script src="js/iceberg.js"></script>
+  <script src="js/stairs.js"></script>
   <script src="js/db.js"></script>
   <script src="js/canvas.js"></script>
   <script src="js/app.js"></script>

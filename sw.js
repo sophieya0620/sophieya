@@ -1,8 +1,8 @@
 /* 오프라인에서도 열리도록 앱 파일을 캐시합니다 */
-const CACHE = 'maeum-seorap-v3';
+const CACHE = 'maeum-seorap-v4';
 const ASSETS = [
   './', './index.html', './css/style.css',
-  './js/emotions.js', './js/iceberg.js', './js/db.js', './js/canvas.js', './js/app.js',
+  './js/emotions.js', './js/stairs.js', './js/db.js', './js/canvas.js', './js/app.js',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-180.png',
 ];
 

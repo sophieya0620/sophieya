@@ -708,67 +708,87 @@ svg { display: block; }
 .day-count.full { color: #C2690F; }
 
 /* =========================================================
-   마음의 빙산 (2장)
+   마음 계단 (2장) — 돋보기를 들고 한 계단씩 안쪽으로
    ========================================================= */
 .berg-page { padding-top: 0; }
-.berg-intro { padding: 10px 4px 6px; }
+.berg-intro { display: flex; gap: 12px; align-items: center; padding: 10px 2px 6px; }
 .berg-intro h2 { margin: 0; font-family: var(--serif); font-size: 20px; }
-.berg-intro p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+.berg-intro p { margin: 3px 0 0; font-size: 13px; color: var(--ink-2); }
+.intro-mag { flex: 0 0 62px; filter: drop-shadow(0 8px 10px rgba(92,60,112,.25)); animation: peer 4.5s ease-in-out infinite; }
+.intro-mag .mag { width: 62px; height: 62px; }
+@keyframes peer { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(4deg) translate(2px, 3px); } }
+
+/* 계단 지도 */
+.d0 { --layer: #FFFFFF; --edge: #ECE6F2; }
+.d1 { --layer: #EAF1FC; --edge: #CFDDF3; }
+.d2 { --layer: #E3E5FA; --edge: #C8CCEE; }
+.d3 { --layer: #DEDAF8; --edge: #C2BAEA; }
+.d4 { --layer: #D8CFF4; --edge: #B9ABE4; }
+.d5 { --layer: #FFE7A3; --edge: #F0C75A; }
 .berg-map {
-  position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
-  margin: 6px -18px 0; padding: 10px 18px; background: rgba(255,255,255,.86); backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; align-items: start;
+  margin: 6px -18px 0; padding: 14px 18px 10px; background: rgba(255,255,255,.88); backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(236,228,242,.8);
 }
-.bm { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; color: var(--ink-3); }
-.bm i {
-  width: 26px; height: 26px; border-radius: 50%; position: relative;
-  background: radial-gradient(circle at 35% 30%, #fff, var(--layer) 75%); box-shadow: 0 2px 0 color-mix(in srgb, var(--layer) 70%, #7FA6CF), 0 4px 8px -4px rgba(60,100,150,.4);
-  transition: transform .3s var(--spring);
+.bm { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding-top: calc(var(--n) * 5px); font-size: 11.5px; color: var(--ink-3); text-align: center; }
+.tread {
+  display: grid; place-items: center; height: 18px; border-radius: 6px; font-style: normal;
+  background: linear-gradient(180deg, #fff, #F6F2F9); box-shadow: 0 4px 0 #E8E1EE, inset 0 0 0 1px #EEE8F3;
+  transition: all .3s var(--spring);
 }
-.bm.filled i::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #2F6F9F; }
-.bm.d5.filled i::after { color: #9A6510; }
+.tread b { font-size: 10px; color: var(--ink-3); }
+.bm.filled .tread { background: linear-gradient(180deg, #fff, var(--layer)); box-shadow: 0 4px 0 var(--edge), inset 0 0 0 1px var(--edge); }
+.bm.filled .tread b::after { content: ' ✓'; color: #6A5FB0; }
+.bm.d5.filled .tread b::after { color: #9A6510; }
 .bm.active { color: var(--ink); font-weight: 700; }
-.bm.active i { transform: scale(1.18) translateY(-1px); box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #8CCBF5, 0 4px 10px -2px rgba(60,100,150,.45); }
-.d0 { --layer: #FFFFFF; } .d1 { --layer: #E3F0FC; } .d2 { --layer: #D2E6F8; }
-.d3 { --layer: #C0DBF4; } .d4 { --layer: #AECFEF; } .d5 { --layer: #FFE39A; }
-.bm.d0 i { background: radial-gradient(circle at 35% 30%, #fff, #EEF5FC 80%); }
+.bm.active .tread { background: linear-gradient(180deg, #FFF8D6, var(--joy)); box-shadow: 0 4px 0 #E7B021, 0 8px 14px -6px rgba(242,179,32,.7); transform: translateY(-2px); }
+.bm.active .tread b { color: #6A430B; }
+.bm-mag { position: absolute; left: 50%; top: calc(var(--n) * 5px - 22px); width: 26px; height: 26px; margin-left: -13px; z-index: 1; filter: drop-shadow(0 3px 3px rgba(92,60,112,.3)); animation: peer 2.4s ease-in-out infinite; }
 
-.berg { position: relative; margin-top: 10px; }
-.berg-peak { height: 46px; margin: 0 12% -2px; }
-.berg-peak svg { width: 100%; height: 100%; display: block; }
-
+/* 계단 카드: 아래로 갈수록 한 칸씩 안쪽(오른쪽)으로 내려가는 3D 계단 */
+.berg { position: relative; margin-top: 14px; }
 .berg-layer {
-  position: relative; padding: 16px 16px 14px; border-radius: 22px; scroll-margin-top: 80px;
-  background: linear-gradient(180deg, rgba(255,255,255,.95), color-mix(in srgb, var(--layer) 45%, rgba(255,255,255,.9)));
-  box-shadow: inset 0 1px 0 #fff, 0 12px 24px -18px rgba(40,90,150,.5), 0 0 0 1px color-mix(in srgb, var(--layer) 80%, #fff);
+  position: relative; padding: 16px 16px 14px; border-radius: 22px; scroll-margin-top: 90px;
+  margin: 0 calc((5 - var(--n, 0)) * 5px) 18px calc(var(--n, 0) * 5px);
+  background: linear-gradient(180deg, #fff 0%, color-mix(in srgb, var(--layer) 55%, #fff) 100%);
+  box-shadow: inset 0 1px 0 #fff, 0 0 0 1px var(--edge), 0 7px 0 var(--edge), 0 18px 26px -18px rgba(92,60,112,.45);
 }
-.berg-layer.d0 { margin: 0 6%; border-radius: 22px 22px 14px 14px; background: linear-gradient(180deg, #fff, #F6FAFE); }
-.berg-layer.d1 { margin: 0 5% 12px; } .berg-layer.d2 { margin: 0 3.5% 12px; }
-.berg-layer.d3 { margin: 0 2% 12px; } .berg-layer.d4 { margin: 0 1% 12px; } .berg-layer.d5 { margin: 0; }
-.layer-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-bottom: 10px; }
+.berg-layer.d0 { --n: 0; } .berg-layer.d1 { --n: 1; } .berg-layer.d2 { --n: 2; }
+.berg-layer.d3 { --n: 3; } .berg-layer.d4 { --n: 4; } .berg-layer.d5 { --n: 5; margin-bottom: 4px; }
+.layer-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-bottom: 10px; }
 .layer-head h3 { margin: 0; font-family: var(--serif); font-size: 17px; }
 .layer-head h3 em { font-style: normal; font-family: var(--sans); font-size: 11.5px; font-weight: 400; color: var(--ink-3); margin-left: 2px; }
 .layer-head small { flex-basis: 100%; font-size: 12.5px; color: var(--ink-2); }
-.layer-tag { order: -1; padding: 2px 9px; border-radius: 10px; font-size: 11px; color: #2F6F9F; background: color-mix(in srgb, var(--layer) 70%, #fff); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--layer) 60%, #9FC4E8); }
+.step-no {
+  display: inline-grid; place-items: center; width: 26px; height: 24px; border-radius: 8px; font-family: var(--serif); font-size: 13px; font-weight: 700; color: #5A4F8F;
+  background: linear-gradient(180deg, #fff, var(--layer)); box-shadow: 0 3px 0 var(--edge), inset 0 0 0 1px var(--edge);
+}
+.d0 .step-no { color: var(--ink-2); }
+.core .step-no { color: #8A5A0C; }
+.layer-tag { padding: 2px 9px; border-radius: 10px; font-size: 11px; color: #5A4F8F; background: color-mix(in srgb, var(--layer) 70%, #fff); box-shadow: inset 0 0 0 1px var(--edge); }
 .d0 .layer-tag { color: #8A7A93; background: #F5F2F8; box-shadow: none; }
 .q { display: block; margin: 14px 2px 6px; font-size: 14px; color: var(--ink); }
 .layer-head + .q, .layer-head + .mini-emos + .q { margin-top: 4px; }
 .q small { display: block; font-size: 12px; color: var(--ink-3); margin-top: 1px; }
-.berg-layer .paper-wrap { background: rgba(255,254,251,.92); }
+.berg-layer .paper-wrap { background: rgba(255,254,251,.94); }
 .berg-layer .paper { font-size: 15.5px; }
 .berg-layer .count { margin-top: 4px; }
 
-.sea {
-  position: relative; margin: -26px -18px 0; padding: 0 18px 20px;
-  background: linear-gradient(180deg, #E4F1FC 0%, #D3E7F9 40%, #BFDAF3 100%);
-  border-radius: 0 0 28px 28px;
+/* 안쪽 마음 영역: 내려갈수록 차분하고 깊은 색 */
+.deep {
+  position: relative; margin: 8px -18px 0; padding: 4px 18px 22px;
+  background: linear-gradient(180deg, rgba(246,243,253,0) 0%, #F3F0FC 12%, #ECE7FA 60%, #E8E0F7 100%);
+  border-radius: 28px;
 }
-.sea-line { position: relative; height: 24px; margin: 14px -18px 0; }
-.sea-line svg { width: 100%; height: 100%; display: block; }
-.sea-line span { position: absolute; right: 22px; top: -16px; padding: 0 6px; border-radius: 8px; background: rgba(255,255,255,.85); font-size: 11.5px; color: #5F95C6; }
-.sea-note b { font-weight: 700; color: #3F7BB3; }
-.sea-note { margin: 2px 0 12px; text-align: center; font-size: 12px; color: #5F86AD; }
-.berg-layer.d0 { z-index: 1; margin-bottom: 0; }
+.deep-door { display: flex; align-items: center; gap: 10px; margin: 6px 4px 16px; padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,.75); box-shadow: inset 0 0 0 1px #E6DFF3; }
+.deep-door p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+.deep-door b { font-family: var(--serif); font-size: 13.5px; color: #5A4F8F; }
+.deep-mag {
+  flex: 0 0 30px; height: 30px; border-radius: 50%; position: relative;
+  background: radial-gradient(circle at 38% 32%, #fff, #E4F1FC 70%); box-shadow: 0 0 0 4px #F5C445, 0 4px 8px rgba(92,60,112,.25);
+  transform: scale(.78) translate(-3px, -3px);
+}
+.deep-mag::after { content: ''; position: absolute; right: -10px; bottom: -10px; width: 8px; height: 16px; border-radius: 4px; background: #F28CA8; transform: rotate(-45deg); }
 
 /* 대처방식 */
 .coping { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -784,8 +804,8 @@ svg { display: block; }
 
 /* 열망 */
 .yearn-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.yearn { height: 34px; padding: 0 13px; border-radius: 17px; font-size: 13.5px; color: #3E6C96; background: rgba(255,255,255,.85); box-shadow: 0 2px 0 #C9DDF1, inset 0 0 0 1px #D6E6F5; transition: all .2s var(--spring); }
-.yearn.active { color: #fff; font-weight: 700; background: linear-gradient(180deg, #9DCBF2, #6FAEE6); box-shadow: 0 3px 0 #4F8FCB; transform: translateY(-1px); }
+.yearn { height: 34px; padding: 0 13px; border-radius: 17px; font-size: 13.5px; color: #5A4F8F; background: rgba(255,255,255,.9); box-shadow: 0 2px 0 #D3CBEC, inset 0 0 0 1px #DED7F2; transition: all .2s var(--spring); }
+.yearn.active { color: #fff; font-weight: 700; background: linear-gradient(180deg, #BBA9EE, #957FDC); box-shadow: 0 3px 0 #7461BF; transform: translateY(-1px); }
 
 /* 자기: 가장 깊은 곳의 따뜻한 빛 */
 .berg-layer.core {
@@ -794,18 +814,19 @@ svg { display: block; }
 }
 .core .layer-tag { color: #9A6510; background: #FFF3CC; box-shadow: inset 0 0 0 1px #FFE19A; }
 
-/* 상세 보기의 빙산 */
-.berg-detail { border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #fff 0, #fff 60px, #E4F1FC 61px, #C7DFF5 100%); box-shadow: inset 0 0 0 1px #E3EEF8; padding: 10px 10px 4px; }
-.bd-sea { margin: 6px -10px 8px; padding: 2px 14px; font-size: 11px; color: #5F95C6; border-top: 2px solid #9FCBEF; }
-.bd-layer { margin-bottom: 8px; padding: 12px 12px 4px; border-radius: 16px; background: rgba(255,255,255,.9); box-shadow: 0 0 0 1px color-mix(in srgb, var(--layer) 80%, #fff); }
-.bd-layer.core { background: radial-gradient(120% 100% at 50% 100%, #FFF3C9, #fff 70%); box-shadow: 0 0 0 1px #FFE7A8, 0 0 20px -6px rgba(255,216,77,.7); }
+/* 상세 보기의 마음 계단 */
+.berg-detail { border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #fff 0, #fff 40px, #F2EEFC 120px, #E7DFF7 100%); box-shadow: inset 0 0 0 1px #ECE5F5; padding: 10px 10px 6px; }
+.bd-sea { margin: 4px 0 10px; padding: 4px 12px; border-radius: 10px; font-size: 11.5px; color: #5A4F8F; background: rgba(255,255,255,.7); text-align: center; }
+.bd-layer { margin: 0 calc((5 - var(--n)) * 3px) 12px calc(var(--n) * 3px); padding: 12px 12px 4px; border-radius: 16px; background: rgba(255,255,255,.92); box-shadow: 0 0 0 1px var(--edge), 0 4px 0 var(--edge); }
+.bd-layer.core { background: radial-gradient(120% 100% at 50% 100%, #FFF3C9, #fff 70%); box-shadow: 0 0 0 1px #FFE7A8, 0 4px 0 #F0C75A, 0 0 20px -6px rgba(255,216,77,.7); }
+.bd-layer h4 .step-no { width: 22px; height: 20px; font-size: 11.5px; margin-right: 6px; vertical-align: 1px; }
 .bd-layer h4 { margin: 0 0 6px; font-family: var(--serif); font-size: 15px; }
 .bd-layer h4 em { font-style: normal; font-family: var(--sans); font-weight: 400; font-size: 11px; color: var(--ink-3); }
 .bd-field { margin-bottom: 10px; }
 .bd-field > small { display: block; font-size: 11.5px; color: var(--ink-3); margin-bottom: 4px; }
 .bd-field .detail-text { line-height: 28px; background-image: repeating-linear-gradient(to bottom, transparent 0 27px, #EEE6F3 27px 28px); }
 .cope-tag { display: inline-block; padding: 6px 12px; border-radius: 12px; font-size: 13px; background: color-mix(in srgb, var(--c) 25%, #fff); }
-.yearn-chip { background: linear-gradient(180deg, #EEF6FD, #DCEBF9) !important; box-shadow: 0 2px 0 #C3DAF0 !important; }
+.yearn-chip { background: linear-gradient(180deg, #F4F1FD, #E4DDF8) !important; box-shadow: 0 2px 0 #CFC5EC !important; }
 
 @media (max-width: 360px) {
   .emo-grid { gap: 7px; }

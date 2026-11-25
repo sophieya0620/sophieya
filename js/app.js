@@ -277,10 +277,15 @@
       `<button type="button" class="yearn ${sel.includes(y) ? 'active' : ''}" data-y="${y}" aria-pressed="${sel.includes(y)}">${y}</button>`).join('');
   }
   let activeLayer = 'behavior';
+  const MAG_MINI = `<svg class="bm-mag" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M38 38 L54 54" stroke="#F28CA8" stroke-width="9" stroke-linecap="round"/>
+      <circle cx="26" cy="26" r="18" fill="#EEF7FE" stroke="#F2B320" stroke-width="6"/>
+      <path d="M16 22 Q19 15 26 13" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none"/></svg>`;
   function renderBergMap() {
     $('#bergMap').innerHTML = BERG_LAYERS.map((l, i) =>
-      `<button type="button" class="bm d${i} ${layerFilled(state.entry, l) ? 'filled' : ''} ${activeLayer === l.key ? 'active' : ''}" data-layer="${l.key}">
-         <i></i><span>${l.name}</span></button>`).join('');
+      `<button type="button" class="bm d${i} ${layerFilled(state.entry, l) ? 'filled' : ''} ${activeLayer === l.key ? 'active' : ''}"
+          data-layer="${l.key}" style="--n:${i}" aria-label="${i + 1}번째 계단 ${l.name}">
+         ${activeLayer === l.key ? MAG_MINI : ''}<i class="tread"><b>${i + 1}</b></i><span>${l.name}</span></button>`).join('');
   }
 
   /* ---------------- 3장: 그림 ---------------- */
@@ -688,7 +693,7 @@
       </div>
       <div class="detail-block"><label>함께한 사람</label>
         <div class="chips">${(r.people || []).length ? r.people.map(p => `<span class="chip">${esc(p)}</span>`).join('') : '<span class="chips-empty">적지 않았어요</span>'}</div></div>
-      <div class="detail-block"><label>마음의 빙산</label>${bergDetailHTML(r)}</div>
+      <div class="detail-block"><label>마음 계단</label>${bergDetailHTML(r)}</div>
       ${r.drawing ? `<div class="detail-block"><label>마음 그림</label><div class="detail-draw"><img src="${r.drawing}" alt="마음 그림"></div></div>` : ''}
     `;
     openLayer($('#detailSheet'));
@@ -704,9 +709,9 @@
     const layers = BERG_LAYERS.map((l, i) => {
       const body = l.fields.map(f => { const h = val(f); return h ? `<div class="bd-field"><small>${BERG_FIELD_LABEL[f]}</small>${h}</div>` : ''; }).join('');
       if (!body) return '';
-      return `${i === 1 ? '<div class="bd-sea">수면 아래</div>' : ''}
-        <section class="bd-layer d${i} ${l.key === 'self' ? 'core' : ''}">
-          <h4>${l.name} <em>${l.en}</em></h4>${body}</section>`;
+      return `${i === 1 ? '<div class="bd-sea">여기서부터 안쪽 마음</div>' : ''}
+        <section class="bd-layer d${i} ${l.key === 'self' ? 'core' : ''}" style="--n:${i}">
+          <h4><span class="step-no">${i + 1}</span>${l.name} <em>${l.en}</em></h4>${body}</section>`;
     }).join('');
     return layers ? `<div class="berg-detail">${layers}</div>` : '<p class="detail-text"><span class="muted">적지 않았어요</span></p>';
   }
@@ -791,7 +796,7 @@
       if (i >= 0) list.splice(i, 1); else list.push(b.dataset.y);
       renderYearn(); renderBergMap(); saveDraft(); vibrate();
     });
-    // 빙산 지도: 누르면 해당 층으로, 스크롤하면 현재 층 표시
+    // 계단 지도: 누르면 해당 계단으로, 스크롤하면 지금 들여다보는 계단에 돋보기 표시
     const bergPage = $('.berg-page');
     const layerTop = el => el.getBoundingClientRect().top - bergPage.getBoundingClientRect().top + bergPage.scrollTop;
     $('#bergMap').addEventListener('click', e => {
