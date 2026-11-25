@@ -1,7 +1,7 @@
 {
-  "name": "마음 구슬 · 감정 일기",
-  "short_name": "마음 구슬",
-  "description": "오늘의 마음을 기억 구슬로 남기는 나만의 감정 일기장",
+  "name": "마음 서랍 · 감정 일기",
+  "short_name": "마음 서랍",
+  "description": "오늘의 마음을 편지로 써서 서랍에 간직하는 나만의 감정 일기장",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",

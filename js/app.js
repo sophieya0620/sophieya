@@ -1,5 +1,5 @@
 /* =========================================================
-   마음 구슬 — 앱 로직
+   마음 서랍 — 앱 로직
    ========================================================= */
 (() => {
   const $ = (s, el = document) => el.querySelector(s);
@@ -18,14 +18,29 @@
     '천천히, 나에게 귀 기울여 봐요.',
     '오늘의 나를 그대로 안아줘요.',
   ];
-  const DRAFT_KEY = 'maeum-guseul-draft';
+  const DRAFT_KEY = 'maeum-guseul-draft';   // (저장 키는 기존 기록 유지를 위해 그대로 둡니다)
+  const DAILY_MAX = 10;
+  const TEXT_FIELDS = ['event', 'reason', 'feelAbout', 'perception', 'expectSelf', 'expectOthers', 'expectFromOthers', 'yearnText', 'selfText'];
 
   const pad2 = n => String(n).padStart(2, '0');
   const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
   const parseDate = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
   const shortDate = s => { const d = parseDate(s); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEK[d.getDay()]})`; };
 
-  const blankEntry = () => ({ id: null, date: todayStr(), emotions: [], people: [], rating: 0, event: '', reason: '', drawing: null, createdAt: null });
+  const nowTime = () => { const d = new Date(); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+  const timeLabel = t => {
+    if (!t) return '';
+    const [h, m] = t.split(':').map(Number);
+    return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${pad2(m)}`;
+  };
+  const entryTime = r => r.time || (r.createdAt ? (d => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`)(new Date(r.createdAt)) : '');
+
+  const blankEntry = () => ({
+    id: null, date: todayStr(), time: null, emotions: [], people: [], rating: 0,
+    event: '', coping: '', reason: '', feelAbout: '', perception: '',
+    expectSelf: '', expectOthers: '', expectFromOthers: '', yearnings: [], yearnText: '', selfText: '',
+    drawing: null, createdAt: null,
+  });
 
   const state = {
     page: 0,
@@ -76,7 +91,7 @@
   function loadDraft() {
     try {
       const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-      if (d && typeof d === 'object') return { ...blankEntry(), ...d, id: null };
+      if (d && typeof d === 'object') return { ...blankEntry(), ...d, id: null, time: null };
     } catch (_) {}
     return null;
   }
@@ -103,7 +118,7 @@
     const prev = $('#prevBtn'), next = $('#nextBtn');
     prev.disabled = state.page === 0;
     if (state.page === 2) {
-      next.innerHTML = state.entry.id ? '고친 기록 저장하기' : '기억 구슬로 저장하기';
+      next.innerHTML = state.entry.id ? '고친 편지 서랍에 넣기' : '마음 편지 서랍에 넣기';
       next.classList.add('save');
     } else {
       next.textContent = '다음';
@@ -122,6 +137,24 @@
     $('#dateInput').value = state.entry.date;
     const isToday = state.entry.date === todayStr();
     $('#dateQuote').textContent = isToday ? QUOTES[d.getDate() % QUOTES.length] : '그날의 마음을 다시 떠올려 볼까요?';
+    renderDayCount();
+  }
+
+  // 하루 최대 10번
+  const dayEntries = (date, exceptId) => state.records.filter(r => r.date === date && r.id !== exceptId);
+  function renderDayCount() {
+    const e = state.entry;
+    const n = dayEntries(e.date, e.id).length;
+    const full = !e.id && n >= DAILY_MAX;
+    const mine = e.id ? null : n;          // 새로 쓰는 편지의 자리
+    const box = $('#dayCount');
+    box.classList.toggle('full', full);
+    box.innerHTML = `
+      <div class="day-dots">${Array.from({ length: DAILY_MAX }, (_, i) =>
+        `<i class="${i < n ? 'on' : ''} ${i === mine ? 'now' : ''}"></i>`).join('')}</div>
+      <span>${e.id ? `이날의 편지 ${n + 1}통 중 하나를 고치고 있어요`
+        : full ? `이날은 편지 ${DAILY_MAX}통을 모두 썼어요`
+        : `이날의 <b>${n + 1}번째</b> 마음 편지 · 하루 최대 ${DAILY_MAX}번`}</span>`;
   }
 
   /* ---------------- 1장: 감정 ---------------- */
@@ -227,9 +260,27 @@
   }
 
   function syncText() {
-    $('#eventText').value = state.entry.event;
-    $('#reasonText').value = state.entry.reason;
-    $('#eventCount').textContent = state.entry.event.length;
+    $$('[data-field]').forEach(el => { el.value = state.entry[el.dataset.field] || ''; });
+    $('#eventCount').textContent = (state.entry.event || '').length;
+    renderCoping(); renderYearn(); renderBergMap();
+  }
+
+  function renderCoping() {
+    $('#copingChips').innerHTML = COPING.map(c =>
+      `<button type="button" class="cope ${state.entry.coping === c.id ? 'active' : ''} ${c.id === 'congruent' ? 'congruent' : ''}"
+          data-cope="${c.id}" style="--c:${c.color}" aria-pressed="${state.entry.coping === c.id}">
+          <strong>${c.name}</strong><small>${c.desc}</small></button>`).join('');
+  }
+  function renderYearn() {
+    const sel = state.entry.yearnings || [];
+    $('#yearnChips').innerHTML = YEARNINGS.map(y =>
+      `<button type="button" class="yearn ${sel.includes(y) ? 'active' : ''}" data-y="${y}" aria-pressed="${sel.includes(y)}">${y}</button>`).join('');
+  }
+  let activeLayer = 'behavior';
+  function renderBergMap() {
+    $('#bergMap').innerHTML = BERG_LAYERS.map((l, i) =>
+      `<button type="button" class="bm d${i} ${layerFilled(state.entry, l) ? 'filled' : ''} ${activeLayer === l.key ? 'active' : ''}" data-layer="${l.key}">
+         <i></i><span>${l.name}</span></button>`).join('');
   }
 
   /* ---------------- 3장: 그림 ---------------- */
@@ -269,9 +320,15 @@
       setTimeout(() => $('#hero').scrollIntoView({ behavior: 'smooth', block: 'center' }), 350);
       return;
     }
+    if (!e.id && dayEntries(e.date).length >= DAILY_MAX) {
+      toast(`하루에 최대 ${DAILY_MAX}번까지 쓸 수 있어요 · 날짜를 바꿔주세요`);
+      goPage(0);
+      return;
+    }
     e.drawing = pad.export();
     const now = Date.now();
     const isEdit = !!e.id;
+    if (!e.time) e.time = nowTime();
     const record = { ...e, id: e.id || `m${now.toString(36)}${Math.random().toString(36).slice(2, 6)}`, createdAt: e.createdAt || now, updatedAt: now };
     try {
       await Store.put(record);
@@ -286,12 +343,17 @@
 
   function showSaved(record, isEdit) {
     const main = EMOTION_MAP[record.emotions[0]];
-    const orb = $('#savedOrb');
-    orb.style.setProperty('--c', main.color);
-    orb.innerHTML = faceSVG(main) + '<i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i>';
+    const scene = $('#savedScene');
+    scene.innerHTML = '';
+    void scene.offsetWidth;   // 애니메이션 다시 시작
+    scene.innerHTML = `
+      <div class="drawer-inside"></div>
+      <div class="env big drop" style="--c:${main.color}"><span class="seal">${faceSVG(main)}</span></div>
+      <div class="drawer-front"><i class="handle"></i></div>
+      <i class="spark s1" style="--c:${main.color}"></i><i class="spark s2" style="--c:${main.color}"></i><i class="spark s3" style="--c:${main.color}"></i>`;
     $('#savedText').innerHTML = isEdit
       ? '고친 마음도 소중히 간직할게요.'
-      : `${shortDate(record.date)}의 ${main.name} 마음,<br>소중히 간직할게요.`;
+      : `${shortDate(record.date)} ${timeLabel(record.time)}의 ${main.name} 마음,<br>소중히 간직할게요.`;
     openLayer($('#savedModal'));
   }
 
@@ -313,7 +375,7 @@
     const b = $('#recordCount');
     b.hidden = !n; b.textContent = n > 99 ? '99+' : n;
     $('#openRecords').classList.toggle('has-alert', dueItems().length > 0);
-    renderPeople();
+    renderPeople(); renderDayCount();
   }
 
   /* ---------------- 임시 삭제함 ---------------- */
@@ -394,7 +456,7 @@
         <div class="trash-top">
           <div class="trash-face">${faceSVG(main)}</div>
           <div class="trash-body">
-            <div class="rec-date">${shortDate(r.date)}</div>
+            <div class="rec-date">${shortDate(r.date)} <small>${timeLabel(entryTime(r))}</small></div>
             <div class="rec-emos">${emos.map(e => e.name).join(' · ')}</div>
             <div class="trash-meta">${note}</div>
           </div>
@@ -423,9 +485,9 @@
       ${list.length ? `<button class="text-btn danger" id="emptyTrash">임시 삭제함 비우기</button>` : ''}`;
     $('#trashList').innerHTML = list.length ? list.map(r => trashItemHTML(r)).join('') : `
       <div class="empty-state small">
-        <div class="glass-orb"></div>
+        <div class="env empty-env" style="--c:#E9E3F0"></div>
         <strong>임시 삭제함이 비어 있어요</strong>
-        <p>지운 기억 구슬은 여기에 잠시 머물러요.</p>
+        <p>지운 마음 편지는 여기에 잠시 머물러요.</p>
       </div>`;
   }
 
@@ -455,14 +517,14 @@
   async function trashAction(act, id, root) {
     const r = state.trash.find(x => x.id === id); if (!r) return;
     if (act === 'restore') {
-      await restoreItem(id); toast('기억 구슬을 되돌렸어요');
+      await restoreItem(id); toast('마음 편지를 서랍에 되돌렸어요');
     } else if (act === 'keep') {
       const sel = root.querySelector(`select[data-keep="${id}"]`);
       const d = sel ? +sel.value : r.keepDays;
       if (!(await keepItem(id, d))) return;
       toast(`${mdDate(r.deletedAt + d * DAY)}까지 임시 보관할게요`);
     } else if (act === 'purge') {
-      if (!(await ask('이 기억 구슬을 영구 삭제할까요?\n영구 삭제한 기록은 되돌릴 수 없어요.', '영구 삭제'))) return;
+      if (!(await ask('이 마음 편지를 영구 삭제할까요?\n영구 삭제한 기록은 되돌릴 수 없어요.', '영구 삭제'))) return;
       await Store.remove(id); toast('영구 삭제했어요');
     }
     await loadRecords();
@@ -519,7 +581,7 @@
     if (!settings.device || !('Notification' in window) || Notification.permission !== 'granted') return;
     const fresh = due.filter(r => !r.notifiedAt || r.notifiedAt < r.remindAt);
     if (!fresh.length) return;
-    const title = '마음 구슬';
+    const title = '마음 서랍';
     const opts = {
       body: `임시 삭제한 기록 ${fresh.length}개를 정리할 시간이에요. 복귀 · 계속 보관 · 영구 삭제 중에서 골라주세요.`,
       icon: 'icons/icon-192.png', tag: 'trash-remind', data: { url: './#trash' },
@@ -552,10 +614,14 @@
       `<button type="button" class="keep-chip ${o.d === settings.keepDays ? 'active' : ''}" data-d="${o.d}">${o.l}</button>`).join('');
   }
 
-  function orbHTML(r, cls = '') {
+  function letterHTML(r, i) {
     const e = EMOTION_MAP[r.emotions[0]] || EMOTIONS[0];
-    return `<button class="orb ${cls}" data-id="${r.id}" style="--c:${e.color}" aria-label="${shortDate(r.date)} ${e.name}">${faceSVG(e)}</button>`;
+    const tilt = [-4, 3, -2, 5, -3, 2][i % 6];
+    return `<button class="letter" data-id="${r.id}" style="--c:${e.color};--t:${tilt}deg;--i:${i}" aria-label="${shortDate(r.date)} ${e.name} 마음 편지">
+        <span class="env"><span class="seal">${faceSVG(e)}</span></span>
+        <small>${parseDate(r.date).getMonth() + 1}.${parseDate(r.date).getDate()}</small></button>`;
   }
+  const excerpt = r => r.event || r.reason || r.perception || r.yearnText || r.selfText || (r.drawing ? '그림으로 남긴 마음' : '적어둔 이야기가 없어요');
 
   function renderRecords() {
     const list = state.records;
@@ -564,13 +630,18 @@
       shelf.innerHTML = '';
       bar.innerHTML = '';
       box.innerHTML = `<div class="empty-state">
-          <div class="glass-orb big"></div>
-          <strong>아직 기억 구슬이 없어요</strong>
-          <p>오늘의 마음을 처음으로 남겨볼까요?</p>
+          <div class="env empty-env big" style="--c:#FFE9A8"></div>
+          <strong>아직 서랍이 비어 있어요</strong>
+          <p>오늘의 마음을 첫 편지로 남겨볼까요?</p>
         </div>`;
       return;
     }
-    shelf.innerHTML = `<p class="shelf-label">최근의 마음들</p><div class="shelf-row">${list.slice(0, 14).map(r => orbHTML(r)).join('')}</div>`;
+    shelf.innerHTML = `
+      <div class="drawer-box">
+        <p class="shelf-label">최근에 넣은 편지</p>
+        <div class="letters">${list.slice(0, 16).map(letterHTML).join('')}</div>
+        <div class="drawer-front slim"><i class="handle"></i><span>편지 ${list.length}통</span></div>
+      </div>`;
 
     const cnt = { pos: 0, mid: 0, neg: 0 };
     list.forEach(r => { const e = EMOTION_MAP[r.emotions[0]]; if (e) cnt[e.group]++; });
@@ -588,12 +659,12 @@
       const emos = r.emotions.map(id => EMOTION_MAP[id]).filter(Boolean);
       const main = emos[0] || EMOTIONS[0];
       return `${head}<article class="rec" data-id="${r.id}" style="--c:${main.color}" tabindex="0">
-          <div class="rec-face">${faceSVG(main)}</div>
+          <div class="rec-face"><span class="env"><span class="seal">${faceSVG(main)}</span></span></div>
           <div class="rec-body">
-            <div class="rec-top"><span class="rec-date">${shortDate(r.date)}</span>
+            <div class="rec-top"><span class="rec-date">${shortDate(r.date)} <small>${timeLabel(entryTime(r))}</small></span>
               <span class="rec-stars">${r.rating ? '★'.repeat(r.rating) + '<s>' + '★'.repeat(5 - r.rating) + '</s>' : ''}</span></div>
             <div class="rec-emos">${emos.map(e => e.name).join(' · ')}</div>
-            <p class="rec-text">${esc(r.event || r.reason || (r.drawing ? '그림으로 남긴 마음' : '적어둔 이야기가 없어요'))}</p>
+            <p class="rec-text">${esc(excerpt(r))}</p>
           </div>
           ${r.drawing ? `<img class="rec-thumb" src="${r.drawing}" alt="">` : ''}
         </article>`;
@@ -605,7 +676,7 @@
     if (!r) return;
     state.detailId = id;
     const emos = r.emotions.map(x => EMOTION_MAP[x]).filter(Boolean);
-    $('#detailTitle').textContent = shortDate(r.date);
+    $('#detailTitle').textContent = `${shortDate(r.date)} ${timeLabel(entryTime(r))}`;
     $('#detailBody').innerHTML = `
       <div class="detail-hero" style="--c:${emos[0]?.color || '#FFD84D'}">
         ${emos.map((e, i) => `<div class="detail-emo ${i === 0 ? 'main' : ''}" style="--c:${e.color}">${faceSVG(e, i === 0 ? 'float' : '')}<span>${e.name}</span></div>`).join('')}
@@ -617,11 +688,27 @@
       </div>
       <div class="detail-block"><label>함께한 사람</label>
         <div class="chips">${(r.people || []).length ? r.people.map(p => `<span class="chip">${esc(p)}</span>`).join('') : '<span class="chips-empty">적지 않았어요</span>'}</div></div>
-      <div class="detail-block"><label>어떤 일이 있었나요</label><p class="detail-text">${esc(r.event) || '<span class="muted">적지 않았어요</span>'}</p></div>
-      <div class="detail-block"><label>이 감정을 고른 이유</label><p class="detail-text">${esc(r.reason) || '<span class="muted">적지 않았어요</span>'}</p></div>
+      <div class="detail-block"><label>마음의 빙산</label>${bergDetailHTML(r)}</div>
       ${r.drawing ? `<div class="detail-block"><label>마음 그림</label><div class="detail-draw"><img src="${r.drawing}" alt="마음 그림"></div></div>` : ''}
     `;
     openLayer($('#detailSheet'));
+  }
+
+  function bergDetailHTML(r) {
+    const val = f => {
+      const v = r[f];
+      if (f === 'coping') { const c = COPING_MAP[v]; return c ? `<span class="cope-tag" style="--c:${c.color}"><b>${c.name}</b> ${c.desc}</span>` : ''; }
+      if (f === 'yearnings') return (v || []).length ? `<div class="chips">${v.map(y => `<span class="chip yearn-chip">${esc(y)}</span>`).join('')}</div>` : '';
+      return v && String(v).trim() ? `<p class="detail-text">${esc(v)}</p>` : '';
+    };
+    const layers = BERG_LAYERS.map((l, i) => {
+      const body = l.fields.map(f => { const h = val(f); return h ? `<div class="bd-field"><small>${BERG_FIELD_LABEL[f]}</small>${h}</div>` : ''; }).join('');
+      if (!body) return '';
+      return `${i === 1 ? '<div class="bd-sea">수면 아래</div>' : ''}
+        <section class="bd-layer d${i} ${l.key === 'self' ? 'core' : ''}">
+          <h4>${l.name} <em>${l.en}</em></h4>${body}</section>`;
+    }).join('');
+    return layers ? `<div class="berg-detail">${layers}</div>` : '<p class="detail-text"><span class="muted">적지 않았어요</span></p>';
   }
 
   /* ---------------- 레이어 ---------------- */
@@ -651,6 +738,7 @@
     di.addEventListener('change', () => {
       if (!di.value) return;
       state.entry.date = di.value; renderDate(); saveDraft();
+      if (!state.entry.id && dayEntries(di.value).length >= DAILY_MAX) toast(`이날은 이미 ${DAILY_MAX}번 썼어요 · 다른 날짜를 골라주세요`);
     });
 
     // 감정
@@ -683,11 +771,40 @@
     });
 
     // 2장
-    $('#eventText').addEventListener('input', e => {
-      state.entry.event = e.target.value; $('#eventCount').textContent = e.target.value.length; saveDraft();
-    });
-    $('#reasonText').addEventListener('input', e => { state.entry.reason = e.target.value; saveDraft(); });
+    let mapTimer;
+    $$('[data-field]').forEach(el => el.addEventListener('input', () => {
+      state.entry[el.dataset.field] = el.value;
+      if (el.dataset.field === 'event') $('#eventCount').textContent = el.value.length;
+      saveDraft();
+      clearTimeout(mapTimer); mapTimer = setTimeout(renderBergMap, 300);
+    }));
     $('#miniEmos').addEventListener('click', e => { if (e.target.closest('[data-go]')) goPage(0); });
+    $('#copingChips').addEventListener('click', e => {
+      const b = e.target.closest('[data-cope]'); if (!b) return;
+      state.entry.coping = state.entry.coping === b.dataset.cope ? '' : b.dataset.cope;
+      renderCoping(); renderBergMap(); saveDraft(); vibrate();
+    });
+    $('#yearnChips').addEventListener('click', e => {
+      const b = e.target.closest('[data-y]'); if (!b) return;
+      const list = state.entry.yearnings = [...(state.entry.yearnings || [])];
+      const i = list.indexOf(b.dataset.y);
+      if (i >= 0) list.splice(i, 1); else list.push(b.dataset.y);
+      renderYearn(); renderBergMap(); saveDraft(); vibrate();
+    });
+    // 빙산 지도: 누르면 해당 층으로, 스크롤하면 현재 층 표시
+    const bergPage = $('.berg-page');
+    const layerTop = el => el.getBoundingClientRect().top - bergPage.getBoundingClientRect().top + bergPage.scrollTop;
+    $('#bergMap').addEventListener('click', e => {
+      const b = e.target.closest('[data-layer]'); if (!b) return;
+      const el = $(`#layer-${b.dataset.layer}`);
+      bergPage.scrollTo({ top: layerTop(el) - $('#bergMap').offsetHeight - 14, behavior: 'smooth' });
+    });
+    bergPage.addEventListener('scroll', () => {
+      const line = bergPage.scrollTop + $('#bergMap').offsetHeight + 60;
+      let cur = BERG_LAYERS[0].key;
+      for (const l of BERG_LAYERS) if (layerTop($(`#layer-${l.key}`)) <= line) cur = l.key;
+      if (cur !== activeLayer) { activeLayer = cur; renderBergMap(); }
+    }, { passive: true });
 
     // 3장
     $('#palette').addEventListener('click', e => {
