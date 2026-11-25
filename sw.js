@@ -1,5 +1,5 @@
 /* 오프라인에서도 열리도록 앱 파일을 캐시합니다 */
-const CACHE = 'maeum-guseul-v1';
+const CACHE = 'maeum-guseul-v2';
 const ASSETS = [
   './', './index.html', './css/style.css',
   './js/emotions.js', './js/db.js', './js/canvas.js', './js/app.js',
@@ -30,4 +30,14 @@ self.addEventListener('fetch', e => {
       return hit || net;
     })
   );
+});
+
+// 알림을 누르면 임시 삭제함을 엽니다
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    for (const c of list) { if ('focus' in c) { c.navigate?.(url); return c.focus(); } }
+    return self.clients.openWindow(url);
+  }));
 });

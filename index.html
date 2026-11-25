@@ -176,14 +176,29 @@
       <div class="sheet-grip"></div>
       <header class="sheet-head">
         <h2>나의 기억 구슬</h2>
-        <button class="icon-btn small" data-close aria-label="닫기">
-          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </button>
+        <div class="head-btns">
+          <button class="icon-btn small" id="openSettings" aria-label="알림 · 보관 설정">
+            <svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+          </button>
+          <button class="icon-btn small" data-close aria-label="닫기">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
       </header>
+      <div class="seg" id="sheetTabs" role="tablist">
+        <button data-tab="records" role="tab">기억 구슬 <em id="recTabCount">0</em></button>
+        <button data-tab="trash" role="tab">임시 삭제함 <em id="trashTabCount">0</em></button>
+      </div>
       <div class="sheet-body">
-        <div class="shelf" id="shelf"></div>
-        <div class="mood-bar" id="moodBar"></div>
-        <div class="record-list" id="recordList"></div>
+        <div id="recordsView">
+          <div class="shelf" id="shelf"></div>
+          <div class="mood-bar" id="moodBar"></div>
+          <div class="record-list" id="recordList"></div>
+        </div>
+        <div id="trashView" hidden>
+          <div class="trash-info" id="trashInfo"></div>
+          <div class="trash-list" id="trashList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -201,7 +216,7 @@
       </header>
       <div class="sheet-body" id="detailBody"></div>
       <div class="sheet-actions">
-        <button class="btn ghost danger" id="deleteBtn">지우기</button>
+        <button class="btn ghost danger" id="deleteBtn">삭제</button>
         <button class="btn primary" id="editBtn">고쳐 쓰기</button>
       </div>
     </div>
@@ -217,8 +232,80 @@
     </div>
   </div>
 
+  <!-- ===== 알림 · 보관 설정 ===== -->
+  <div class="sheet" id="settingsSheet" aria-hidden="true">
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel short" role="dialog" aria-label="알림 · 보관 설정">
+      <div class="sheet-grip"></div>
+      <header class="sheet-head">
+        <h2>알림 · 보관 설정</h2>
+        <button class="icon-btn small" data-close aria-label="닫기">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </header>
+      <div class="sheet-body">
+        <div class="set-row">
+          <div><strong>임시 삭제 알림</strong>
+            <small>삭제한 지 3일이 지나면 복귀 · 계속 보관 · 영구 삭제 중에서 고르도록 알려드려요. 영구 삭제 하루 전에도 한 번 더 알려드려요.</small></div>
+          <button class="switch" id="setRemind" role="switch" aria-label="임시 삭제 알림"></button>
+        </div>
+        <div class="set-row">
+          <div><strong>휴대폰 알림</strong>
+            <small>앱을 보고 있지 않을 때도 휴대폰 알림으로 알려드려요. 알림 권한이 필요해요.</small></div>
+          <button class="switch" id="setDevice" role="switch" aria-label="휴대폰 알림"></button>
+        </div>
+        <div class="set-block">
+          <strong>기본 보관 기간</strong>
+          <small>임시 삭제할 때 처음 골라져 있는 기간이에요 (최소 3일 · 최대 3개월)</small>
+          <div class="keep-chips" id="setKeep"></div>
+        </div>
+        <p class="set-note">답을 기다리는 기록은 고를 때까지 지우지 않고 보관해요.<br>단, 삭제한 지 3개월이 지나면 자동으로 영구 삭제돼요.<br>알림을 끄면 보관 기간이 끝나는 대로 영구 삭제돼요.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 삭제 방식 고르기 ===== -->
+  <div class="modal" id="deleteModal" aria-hidden="true">
+    <div class="modal-card del-card" role="dialog" aria-labelledby="delTitle">
+      <h3 id="delTitle">이 기억 구슬을 어떻게 할까요?</h3>
+      <div class="del-opts" role="radiogroup">
+        <button type="button" class="del-opt" data-mode="temp" role="radio">
+          <i class="del-ico temp"><svg viewBox="0 0 24 24"><path d="M4 7h16M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/><path d="M12 11v3.5l2 1.5"/></svg></i>
+          <span><strong>임시 삭제</strong><small>임시 삭제함에 두었다가 언제든 되돌릴 수 있어요</small></span>
+        </button>
+        <div class="del-keep" id="delKeepWrap">
+          <p>얼마나 보관할까요?</p>
+          <div class="keep-chips" id="delKeep"></div>
+          <small id="delKeepNote"></small>
+        </div>
+        <button type="button" class="del-opt" data-mode="perm" role="radio">
+          <i class="del-ico perm"><svg viewBox="0 0 24 24"><path d="M4 7h16M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7M10 11l4 5M14 11l-4 5"/></svg></i>
+          <span><strong>영구 삭제</strong><small>지금 바로 지워지고 되돌릴 수 없어요</small></span>
+        </button>
+      </div>
+      <div class="ask-actions">
+        <button class="btn ghost" id="delCancel">취소</button>
+        <button class="btn primary" id="delOk">임시 삭제하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 임시 삭제 알림 ===== -->
+  <div class="modal" id="remindModal" aria-hidden="true">
+    <div class="modal-card remind-card" role="dialog" aria-labelledby="remindTitle">
+      <div class="bell" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></div>
+      <h3 id="remindTitle">임시 삭제한 기록을 정리해 볼까요?</h3>
+      <p>삭제한 지 3일이 지난 기록이 있어요.<br>복귀 · 계속 보관 · 영구 삭제 중에서 골라주세요.</p>
+      <div class="remind-list" id="remindList"></div>
+      <div class="remind-foot">
+        <button class="text-btn" id="remindOpenTrash">임시 삭제함 보기</button>
+        <button class="btn ghost" id="remindLater">나중에 정할게요</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== 확인 대화상자 ===== -->
-  <div class="modal" id="askModal" aria-hidden="true">
+  <div class="modal ask-modal" id="askModal" aria-hidden="true">
     <div class="modal-card ask-card" role="alertdialog" aria-labelledby="askText">
       <p id="askText"></p>
       <div class="ask-actions">
